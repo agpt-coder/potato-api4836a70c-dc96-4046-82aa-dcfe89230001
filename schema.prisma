@@ -1,0 +1,83 @@
+// datasource db defines the database connection settings.
+// It is configured for PostgreSQL and uses an environment variable for the connection URL.
+// The 'extensions' feature enables the use of PostgreSQL-specific data types.
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+}
+
+// generator db configures Prisma Client settings.
+// It is set up to use Prisma Client Python with asyncio interface and specific features.
+generator db {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+  previewFeatures      = ["postgresqlExtensions"]
+}
+
+model Photo {
+  id             String          @id @default(dbgenerated("gen_random_uuid()"))
+  url            String          @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  // Associate each photo with a user who uploaded it. Assuming a basic use case where users could upload photos.
+  userId         String?
+  uploadedByUser User?           @relation("UploadedPhotos", fields: [userId], references: [id])
+  UserFavorites  UserFavorites[]
+
+  @@map("photos")
+}
+
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  role      Role     @default(USER_TYPE_1) // Enum for role to use upper snake case
+
+  uploadedPhotos Photo[]         @relation("UploadedPhotos")
+  favorites      UserFavorites[]
+  apiKeys        ApiKey[]
+  requestLogs    RequestLog[]
+
+  @@map("users")
+}
+
+model UserFavorites {
+  userId  String
+  photoId String
+
+  user  User  @relation(fields: [userId], references: [id])
+  photo Photo @relation(fields: [photoId], references: [id])
+
+  @@id([userId, photoId])
+  @@map("user_favorites")
+}
+
+model ApiKey {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  key       String   @unique
+  userId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("api_keys")
+}
+
+model RequestLog {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId    String? // Optional: Some requests may not be authenticated
+  createdAt DateTime @default(now())
+  endpoint  String // Indicates which endpoint was accessed
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@map("request_logs")
+}
+
+enum Role {
+  USER_TYPE_1
+  USER_TYPE_2
+  USER_TYPE_3
+}
+

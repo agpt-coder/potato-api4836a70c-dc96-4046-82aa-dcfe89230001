@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "potato-api"
+version = "0.1.0"
+description = "To create a Potato API that takes in any input/API call and returns a photo of a potato, here's a comprehensive plan based on the functionality expectations and the tech stack specified:"
+authors = ["AutoGPT <info@agpt.co>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+bcrypt = "^4.0.0"
+fastapi = "^0.85.0"
+prisma = "*"
+pydantic = "*"
+uvicorn = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
